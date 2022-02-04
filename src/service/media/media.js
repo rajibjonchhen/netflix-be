@@ -7,6 +7,8 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from 'multer'
 import { checkIfIdExists } from './validation.js' 
+import { getMediaPdf } from "../file/pdfMaker.js";
+
 const mediaRouter = express.Router()
 
 const cloudinaryUploader = multer({
@@ -18,6 +20,8 @@ const cloudinaryUploader = multer({
     })
   }).single("image")
 
+
+  // adding image 
 mediaRouter.put('/:id/poster',checkIfIdExists, cloudinaryUploader, async(req, res, next) =>{
     try {
         const mediaArray = await readMedia()
@@ -29,7 +33,29 @@ mediaRouter.put('/:id/poster',checkIfIdExists, cloudinaryUploader, async(req, re
         next(error)
     }
 })
-// adding image 
+
+
+
+mediaRouter.get('/:id/pdf', checkIfIdExists, async(req, res, next)=>{
+    console.log("im pdf")
+try {
+    const mediaArray = await readMedia()
+    const media = mediaArray[req.index]
+    res.setHeader("Content-Disposition", `attachment; filename=${media.title}.pdf`);
+    const source = getMediaPdf(media)
+    const destination = res;
+    pipeline(source, destination, (err) => {
+      if (err) next(err);
+    })
+    
+} catch (error) {
+    console.log(error)
+    next(error)
+}
+})
+
+
+
 
 //for post movie 
 mediaRouter.post('/', inputValidation, async(req,res,next)=>{
