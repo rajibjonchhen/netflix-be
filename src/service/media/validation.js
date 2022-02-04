@@ -69,12 +69,15 @@ const mediaJSONPath = join(dataFolderPath,'media.json')
 const reviewJSONPath = join(dataFolderPath,'reviews.json')
 
 export const checkIfIdExists =  async (req,res,next) => {
+  console.log('im consoling1')
   try {
       const mediaArray = await readMedia()
       const mediaIndex = mediaArray.findIndex(el=>el.imdbId===req.params.id)
       console.log('mediaIndex',mediaIndex)
           if(mediaIndex>=0){
             req.index=mediaIndex
+  console.log('im consoling2')
+
             if(!req.params.reviewId){
               next()
               } else{

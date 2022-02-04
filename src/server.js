@@ -25,12 +25,12 @@ server.use(cors({origin:function(origin, next){
 } }))
 
 // express json
+server.use('/media',mediaRouter)
 server.use(express.json())
 server.use(helmet())
 
 
 // router
-server.use('/media',mediaRouter)
 
 
 // error handler
