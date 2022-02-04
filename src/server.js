@@ -16,7 +16,7 @@ const port = process.env.PORT || 3001
 console.log(port)
 
 
-const whiteListOrigins = [process.env.FE_DEV_URL, process.env.FE_PROD_URL,process.env.CLOUDINARY_URL]
+const whiteListOrigins = [process.env.FE_DEV_URL, process.env.FE_PROD_URL]
 server.use(cors({origin:function(origin, next){
     if(!origin || whiteListOrigins.indexOf(origin) != -1)
     next(null, true)
@@ -41,4 +41,8 @@ console.table(listEndpoints(server))
 
 server.listen(port,() =>{
     console.log("Server running on ", port)
+})
+
+server.on('error',()=>{
+    console.log(error)
 })

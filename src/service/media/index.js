@@ -5,11 +5,21 @@ import uniqid from 'uniqid'
 import { inputValidation } from './validation.js'
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
-
-
+import multer from 'multer'
+import { checkIfIdExists } from './validation.js' 
 const mediaRouter = express.Router()
 
-// 
+const cloudinaryUploader = multer({
+    storage: new CloudinaryStorage({
+    cloudinary,
+      params:{
+        folder:'netflix'
+      }
+    })
+  }).single("image")
+
+
+//for post movie 
 mediaRouter.post('/', inputValidation, async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
@@ -38,68 +48,58 @@ mediaRouter.get('/',async(req,res,next)=>{
     }
 })
 
-mediaRouter.get('/:id',async(req,res,next)=>{
+mediaRouter.get('/:id', checkIfIdExists , async(req,res,next)=>{
  
    try {
-        const mediaArray = await readMedia()
-        const id = req.params.id
-        const reqMedia = mediaArray.find(media => media.id === id)
-    if(reqMedia) 
+       const mediaArray = await readMedia()
+       const reqMedia = mediaArray[req.index]
+       console.log(reqMedia)
         res.status(200).send(reqMedia)
-     else 
-        res.status(200).send({msg:`media with ${id} not found`})
    } catch (error) {
     next(error)
    }
 })
 
-mediaRouter.put('/:id',async(req,res,next)=>{
+mediaRouter.put('/:id',checkIfIdExists,async(req,res,next)=>{
     try {
+        //req.index comimg from checkIfIdExists middleware
         const mediaArray = await readMedia()
-        const id = req.params.id
-        const index = mediaArray.findIndex(media => media.id === id)
-        console.log("id", id, "index",index)
-    if(index >= 0){
-        const oldMedia = mediaArray[index]
+        const oldMedia = mediaArray[req.index]
         const updatedMedia = {...oldMedia,...req.body,updatedAt:new Date()}
-        mediaArray[index] = updatedMedia
+        mediaArray[req.index] = updatedMedia
         await writeMedia(mediaArray)
         res.send(updatedMedia)
-    } else 
-        res.send({msg:`media with ${id} not found`})
-    } catch (error) {
+    }catch (error) {
         res.send({msg:`media with not found`})
         next(error)
     }
 
 })
 
-mediaRouter.delete('/:id',async(req,res,next)=>{
-    
-    const mediaArray = await readMedia()
-    const remainingMedia = mediaArray.filter(media => media.id !== req.params.id)
-    await writeMedia(remainingMedia)
-    res.send({msg:"deleted single"})
-
-
-})
-
-// posting review
-mediaRouter.post('/:id/reviews',async(req,res,next)=>{
+mediaRouter.delete('/:id',checkIfIdExists, async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
-        const id = req.params.id
-        const index = mediaArray.findIndex(media => media.imdbId === id)
-        console.log("id", id, "index",index)
-    if(index >= 0){
-        const singleMedia = mediaArray[index]
+        const remainingMedia = mediaArray.filter(media => media.id !== req.index)
+        await writeMedia(remainingMedia)
+    res.send({msg:"deleted single"})
+    } catch (error) {
+        res.send({msg:`media with not found`})
+        next(error)
+    }
+})
+
+
+// posting review
+mediaRouter.post('/:id/reviews',checkIfIdExists, async(req,res,next)=>{
+    try {
+        const mediaArray = await readMedia()
+        const singleMedia = mediaArray[req.index]
         const newReview = {...req.body, reviewId:uniqid(),createdAt:new Date()}
         singleMedia.reviews.push(newReview)
-        mediaArray[index] = singleMedia
+        mediaArray[req.index] = singleMedia
         await writeMedia(mediaArray)
         res.send(newReview)
-    } else 
-        res.send({msg:`media with ${id} not found`})
+
     } catch (error) {
         res.send({msg:`media with not found`})
         next(error)
@@ -108,87 +108,51 @@ mediaRouter.post('/:id/reviews',async(req,res,next)=>{
 })
 
 // getting all reviews
-mediaRouter.get('/:id/reviews',async(req,res,next)=>{ 
-    try {
-         const mediaArray = await readMedia()
-         const id = req.params.id
-         const reqMedia = mediaArray.find(media => media.imdbId === id)
-     if(reqMedia) 
-
-         res.status(200).send(reqMedia.reviews)
-      else 
-         res.status(200).send({msg:`media with ${id} not found`})
+mediaRouter.get('/:id/reviews', checkIfIdExists,async(req,res,next)=>{ 
+    try {  
+        const mediaArray = await readMedia()
+        const reqReviews = mediaArray[req.index].reviews
+        console.log('req.index',req.index,'reqReviews',reqReviews)
+        res.status(200).send(reqReviews)
     } catch (error) {
-     next(error)
+    next(error)
     }
  })
 
 //  getting single review
-mediaRouter.get('/:id/reviews/:reviewId',async(req,res,next)=>{ 
+mediaRouter.get('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>{ 
     try {
          const mediaArray = await readMedia()
-         const id = req.params.id
-         const reqMedia = mediaArray.find(media => media.imdbId === id)
-     if(reqMedia) {
-         const reqReview = reqMedia.reviews.find(review => review.reviewId === req.params.reviewId)
-        if(reqReview)
+         const reqReview = mediaArray[req.index].reviews[req.reviewIndex]
         res.status(200).send(reqReview)
-        else
-        res.status(200).send({msg:"review not found"})
-        }
-      else 
-         res.status(200).send({msg:`media with ${id} not found`})
-    } catch (error) {
+         } catch (error) {
      next(error)
     }
  })
 
  //  editing single review
-mediaRouter.put('/:id/reviews/:reviewId',async(req,res,next)=>{ 
+mediaRouter.put('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>{ 
     try {
-         const mediaArray = await readMedia()
-         const id = req.params.id
-         const mediaIndex = mediaArray.findIndex(media => media.imdbId === id)
-     if(mediaIndex >= 0 ) {
-         const reqMedia = mediaArray[mediaIndex]
-         const reviewId = req.params.reviewId
-         const reviewIndex = reqMedia.reviews.findIndex(review => review.reviewId === reviewId)
-        if(reviewIndex >= 0){
-            const reqReview = reqMedia[reviewIndex]
+            const mediaArray = await readMedia()
             const updatedReview = {...newReview,...req.body,updatedAt: new Date()}
-            reqMedia[reviewIndex] = updatedReview
-            mediaArray[mediaIndex] = reqReview
+            mediaArray[req.index].reviews[req.reviewIndex] = updatedReview
             await writeMedia(mediaArray)
             res.status(200).send(reqReview)
+        } catch (error) {
+            next(error)
         }
-        else
-        res.status(200).send({msg:"review not found"})
-        }
-      else 
-         res.status(200).send({msg:`media with ${id} not found`})
-    } catch (error) {
-     next(error)
-    }
- })
-
-//  delete review 
-mediaRouter.delete('/:id/reviews/:reviewId', async(req,res,next) => {
-    try {
+    })
+    
+    //  delete review 
+    mediaRouter.delete('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next) => {
+        try {
         const mediaArray = await readMedia()
-        const id = req.params.id
-        const mediaIndex = mediaArray.findIndex(media => media.imdbId === id)
-        if(mediaIndex >= 0){
-            const reqMedia  = mediaArray[mediaIndex]
-            const reviewId = req.params.reviewId
-            const remainingReviews = reqMedia.reviews.filter(review => review.reviewId !== reviewId)
-            reqMedia.reviews = remainingReviews
-            mediaArray[mediaIndex] = reqMedia
+            const remainingReviews = mediaArray[req.index].reviews.filter(review => review.reviewId !== req.reviewIndex)
+            mediaArray[req.index].reviews = remainingReviews
             res.status(200).send({msg:"review deleted"})
-        await writeMedia(mediaArray)
-        } else {
-            res.status(200).send({msg:"not found"})
+            await writeMedia(mediaArray)
         }
-    } catch (error) {
+     catch (error) {
         res.status(200).send({msg:"error deleting found"})
         
     }

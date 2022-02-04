@@ -1,4 +1,9 @@
 import { checkSchema, validationResult } from "express-validator";
+import { dirname, join, extname } from "path";
+import { fileURLToPath } from "url";
+import fs from 'fs-extra'
+import { readMedia } from "../../lib/fs-tools.js";
+import createError from 'http-errors'
 
 const schema = {
   title: {
@@ -56,3 +61,39 @@ export const checkValidationResult = (req, res, next) => {
   }
   next();
 };
+
+
+
+const dataFolderPath = join(dirname(fileURLToPath(import.meta.url)),'../data')
+const mediaJSONPath = join(dataFolderPath,'media.json')
+const reviewJSONPath = join(dataFolderPath,'reviews.json')
+
+export const checkIfIdExists =  async (req,res,next) => {
+  try {
+      const mediaArray = await readMedia()
+      const mediaIndex = mediaArray.findIndex(el=>el.imdbId===req.params.id)
+      console.log('mediaIndex',mediaIndex)
+          if(mediaIndex>=0){
+            req.index=mediaIndex
+            if(!req.params.reviewId){
+              next()
+              } else{
+                const reviewIndex = mediaArray[mediaIndex].reviews.findIndex(review => review.reviewId === req.params.reviewId)
+                if(reviewIndex>=0){
+                  req.reviewIndex = reviewIndex
+                  console.log('reviewIndex',req.reviewIndex)
+                  next()
+                } else {
+                  next(createError(404,'review not found'))
+                }
+              }
+      }
+      else{
+          next(createError(404,'Movie not found'))
+      }
+  } catch (error) {
+     console.log(error)
+      next(createError(404,' Error'))
+  }
+} 
+

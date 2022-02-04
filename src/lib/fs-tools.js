@@ -6,6 +6,7 @@ const { readJSON, writeJSON, writeFile, createReadStream } = fs
 
 const dataFolderPath = join(dirname(fileURLToPath(import.meta.url)),'../data')
 const mediaJSONPath = join(dataFolderPath,'media.json')
+const reviewJSONPath = join(dataFolderPath,'reviews.json')
 
 const publicFolderPath = join(process.cwd(),'./public')
 
