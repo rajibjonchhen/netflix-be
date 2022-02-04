@@ -6,6 +6,7 @@ import createHttpError from 'http-errors'
 import morgan from 'morgan'
 import helmet from 'helmet'
 import mediaRouter from './service/media/index.js'
+import { badRequestHandler, unauthorizedHandler, notFoundHandler, genericErrorHandler} from './service/error-handler.js'
 
 
 
@@ -30,6 +31,12 @@ console.table(whiteListOrigins)
 
 
 server.use('/media',mediaRouter)
+
+server.use(badRequestHandler)
+server.use(unauthorizedHandler)
+server.use(notFoundHandler)
+server.use(genericErrorHandler)
+
 console.table(listEndpoints(server))
 
 server.listen(port,() =>{

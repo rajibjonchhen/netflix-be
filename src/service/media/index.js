@@ -2,12 +2,15 @@ import express from 'express'
 import fs from 'fs-extra'
 import { readMedia, writeMedia } from '../../lib/fs-tools.js'
 import uniqid from 'uniqid'
+import { inputValidation } from './validation.js'
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
 
 const mediaRouter = express.Router()
 
 // 
-mediaRouter.post('/',async(req,res,next)=>{
+mediaRouter.post('/', inputValidation, async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
         const newMedia = {imdbId:uniqid(),...req.body, createdAt:new Date (),reviews:[]}
