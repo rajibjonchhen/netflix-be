@@ -18,6 +18,18 @@ const cloudinaryUploader = multer({
     })
   }).single("image")
 
+mediaRouter.put('/:id/poster',checkIfIdExists, cloudinaryUploader, async(req, res, next) =>{
+    try {
+        const mediaArray = await readMedia()
+        mediaArray[req.index] = {...mediaArray[req.index],Poster:req.file.path }
+        await writeMedia(mediaArray)
+        res.status(201).send(mediaArray[req.index])
+    } catch (error) {
+        console.log()
+        next(error)
+    }
+})
+// adding image 
 
 //for post movie 
 mediaRouter.post('/', inputValidation, async(req,res,next)=>{
@@ -28,6 +40,7 @@ mediaRouter.post('/', inputValidation, async(req,res,next)=>{
         await writeMedia(mediaArray)
     res.status(201).send(newMedia)
     } catch (error) {
+        console.log()
         next(error)
         
     }
@@ -56,6 +69,7 @@ mediaRouter.get('/:id', checkIfIdExists , async(req,res,next)=>{
        console.log(reqMedia)
         res.status(200).send(reqMedia)
    } catch (error) {
+    console.log(error)
     next(error)
    }
 })
@@ -70,7 +84,7 @@ mediaRouter.put('/:id',checkIfIdExists,async(req,res,next)=>{
         await writeMedia(mediaArray)
         res.send(updatedMedia)
     }catch (error) {
-        res.send({msg:`media with not found`})
+        console.log(error)
         next(error)
     }
 
@@ -83,7 +97,7 @@ mediaRouter.delete('/:id',checkIfIdExists, async(req,res,next)=>{
         await writeMedia(remainingMedia)
     res.send({msg:"deleted single"})
     } catch (error) {
-        res.send({msg:`media with not found`})
+        console.log(error)
         next(error)
     }
 })
@@ -101,8 +115,8 @@ mediaRouter.post('/:id/reviews',checkIfIdExists, async(req,res,next)=>{
         res.send(newReview)
 
     } catch (error) {
-        res.send({msg:`media with not found`})
-        next(error)
+    console.log(error)
+    next(error)
     }
 
 })
@@ -115,7 +129,8 @@ mediaRouter.get('/:id/reviews', checkIfIdExists,async(req,res,next)=>{
         console.log('req.index',req.index,'reqReviews',reqReviews)
         res.status(200).send(reqReviews)
     } catch (error) {
-    next(error)
+      console.log(error)
+        next(error)
     }
  })
 
@@ -126,8 +141,9 @@ mediaRouter.get('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>
          const reqReview = mediaArray[req.index].reviews[req.reviewIndex]
         res.status(200).send(reqReview)
          } catch (error) {
-     next(error)
-    }
+            console.log(error)
+            next(error)
+         }
  })
 
  //  editing single review
@@ -139,6 +155,7 @@ mediaRouter.put('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>
             await writeMedia(mediaArray)
             res.status(200).send(reqReview)
         } catch (error) {
+         console.log(error)
             next(error)
         }
     })
@@ -153,8 +170,8 @@ mediaRouter.put('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>
             await writeMedia(mediaArray)
         }
      catch (error) {
-        res.status(200).send({msg:"error deleting found"})
-        
+         console.log(error)
+        next(error)
     }
 })
 
