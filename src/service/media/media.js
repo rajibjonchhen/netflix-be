@@ -9,6 +9,7 @@ import multer from 'multer'
 import { checkIfIdExists } from './validation.js' 
 import { getMediaPdf } from "../file/pdfMaker.js";
 import { pipeline } from "stream";
+import axios from 'axios'
 
 const mediaRouter = express.Router()
 
@@ -101,14 +102,24 @@ mediaRouter.get('/',async(req,res,next)=>{
         const mediaArray = await readMedia()
         let reqMovie = []
         if(req.query.Title){  
-            reqMovie = mediaArray.filter(media => media.Title.toLowerCase() === req.query.Title.toLowerCase())
+            reqMovie = mediaArray.filter(media => media.Title.toLowerCase().include(req.query.Title.toLowerCase())) // === req.query.Title.toLowerCase())
             if(reqMovie.length > 0){
-                res.status(200).send(reqMovie)
-            } else {
-                
-                res.status(404).send({msg:`movie with title ${req.query.Title} not found`})
-            }
-        } 
+                res.status(200).send("searched movie",reqMovie)
+            // } else {
+            //     await axios.get(`http://www.omdbapi.com/?s=${req.query.Title}&apikey=bf46dbfc`)
+            //     .then(OMDbMedia => {
+            //         if(OMDbMedia.length != 0){
+            //             mediaArray.push(OMDbMedia);
+            //             writeMedia(OMDbMedia)
+            //             res.status(200).send(OMDbMedia)
+                    } else{
+                        res.status(404).send({msg:`movie with title ${req.query.Title} not found`})
+                    }
+            //     })
+            //     .catch(err=> console.log(err))
+            // }
+            
+            } 
         else{
             // console.log(mediaArray)
             res.status(200).send(mediaArray)
