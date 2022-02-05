@@ -43,7 +43,7 @@ mediaRouter.put('/:id/poster',checkIfIdExists, cloudinaryUploader, async(req, re
 })
 
 
-
+// get pdf of a media with review
 mediaRouter.get('/:id/pdf', checkIfIdExists, async(req, res, next)=>{
     try {
     const mediaArray = await readMedia()
@@ -64,7 +64,7 @@ mediaRouter.get('/:id/pdf', checkIfIdExists, async(req, res, next)=>{
 
 
 
-//for post movie 
+//for post media 
 mediaRouter.post('/', inputValidation, async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
@@ -80,20 +80,47 @@ mediaRouter.post('/', inputValidation, async(req,res,next)=>{
 
 })
 
+// get all media
+// mediaRouter.get('/',async(req,res,next)=>{
+//     try {
+//         const mediaArray = await readMedia()
+//         if(req.query && req.query.genre){
+            
+//         }
+//         console.log(mediaArray)
+//         res.status(200).send(mediaArray)
+//     } catch (error) {
+//         next(error)
+//         console.log({error:'error'})
+//     }
+// })
+
+// get movie with/ without query
 mediaRouter.get('/',async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
-        if(req.query && req.query.genre){
-            
+        let reqMovie = []
+        if(req.query.Title){  
+            reqMovie = mediaArray.filter(media => media.Title.toLowerCase() === req.query.Title.toLowerCase())
+            if(reqMovie.length > 0){
+                res.status(200).send(reqMovie)
+            } else {
+                
+                res.status(404).send({msg:`movie with title ${req.query.Title} not found`})
+            }
+        } 
+        else{
+            // console.log(mediaArray)
+            res.status(200).send(mediaArray)
         }
-        console.log(mediaArray)
-        res.status(200).send(mediaArray)
+        // res.status(200).send(mediaArray)
     } catch (error) {
         next(error)
-        console.log({error:'error'})
     }
 })
 
+
+// get media with id 
 mediaRouter.get('/:id', checkIfIdExists , async(req,res,next)=>{
  
    try {
@@ -107,6 +134,7 @@ mediaRouter.get('/:id', checkIfIdExists , async(req,res,next)=>{
    }
 })
 
+// update a media
 mediaRouter.put('/:id',checkIfIdExists,async(req,res,next)=>{
     try {
         //req.index comimg from checkIfIdExists middleware
@@ -123,6 +151,7 @@ mediaRouter.put('/:id',checkIfIdExists,async(req,res,next)=>{
 
 })
 
+// delete media
 mediaRouter.delete('/:id',checkIfIdExists, async(req,res,next)=>{
     try {
         const mediaArray = await readMedia()
