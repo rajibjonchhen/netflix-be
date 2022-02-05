@@ -11,7 +11,4 @@ const reviewJSONPath = join(dataFolderPath,'reviews.json')
 const publicFolderPath = join(process.cwd(),'./public')
 
 export const readMedia = () => readJSON(mediaJSONPath)
-export const writeMedia = (content) => {
-    console.log(content)
-    writeJSON(mediaJSONPath, content)
-}
+export const writeMedia = (content) => writeJSON(mediaJSONPath, content)

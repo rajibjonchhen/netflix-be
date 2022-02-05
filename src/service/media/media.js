@@ -14,11 +14,11 @@ const mediaRouter = express.Router()
 
 const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
 
-// cloudinary.config({
-//   cloud_name: CLOUDINARY_NAME,
-//   api_key: CLOUDINARY_KEY,
-//   api_secret: CLOUDINARY_SECRET,
-// });
+cloudinary.config({
+  cloud_name: CLOUDINARY_NAME,
+  api_key: CLOUDINARY_KEY,
+  api_secret: CLOUDINARY_SECRET,
+});
 const cloudinaryUploader = multer({
     storage: new CloudinaryStorage({
     cloudinary,
@@ -185,10 +185,11 @@ mediaRouter.get('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>
 mediaRouter.put('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>{ 
     try {
             const mediaArray = await readMedia()
-            const updatedReview = {...newReview,...req.body,updatedAt: new Date()}
+            const reqReview = mediaArray[req.index].reviews[req.reviewIndex]
+            const updatedReview = {...reqReview,...req.body,updatedAt: new Date()}
             mediaArray[req.index].reviews[req.reviewIndex] = updatedReview
             await writeMedia(mediaArray)
-            res.status(200).send(reqReview)
+            res.status(200).send(updatedReview)
         } catch (error) {
          console.log(error)
             next(error)
@@ -198,11 +199,13 @@ mediaRouter.put('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next)=>
     //  delete review 
     mediaRouter.delete('/:id/reviews/:reviewId', checkIfIdExists, async(req,res,next) => {
         try {
-        const mediaArray = await readMedia()
-            const remainingReviews = mediaArray[req.index].reviews.filter(review => review.reviewId !== req.reviewIndex)
+            const mediaArray = await readMedia()
+            const reqReview = mediaArray[req.index].reviews[req.reviewIndex]
+            const remainingReviews = mediaArray[req.index].reviews.filter(review => review.reviewId != reqReview.reviewId)
             mediaArray[req.index].reviews = remainingReviews
-            res.status(200).send({msg:"review deleted"})
+            console.log('req.index',req.index,'req.reviewIndex',req.reviewIndex, 'remainingReviews',remainingReviews)
             await writeMedia(mediaArray)
+            res.status(200).send({msg:"review deleted"})
         }
      catch (error) {
          console.log(error)
