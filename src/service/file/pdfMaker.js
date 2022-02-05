@@ -3,14 +3,14 @@ import axios from 'axios'
 
 export const getMediaPdf = async(media) => {
 const {Title, Year, Type, Poster, createAt, reviews, imdbId} = media
+
 const fonts = {
-Helvetica: {
-    normal: "Helvetica",
-    bold: "Helvetica-Bold",
-    
-},
-}
-   
+    Helvetica: {
+        normal: "Helvetica",
+        bold: "Helvetica-Bold",
+    },
+  }
+
     const printer = new PdfPrinter(fonts)
     let imagePart = {};
     if (Poster) {
@@ -45,6 +45,10 @@ Helvetica: {
       '\n',
       imagePart,
       '\n',
+      '\n',
+      {
+          text:`Type : ${Type}`
+      },
      {
          text:`Released Year : ${Year}`
      },

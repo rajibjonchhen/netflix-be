@@ -45,12 +45,10 @@ mediaRouter.put('/:id/poster',checkIfIdExists, cloudinaryUploader, async(req, re
 
 
 mediaRouter.get('/:id/pdf', checkIfIdExists, async(req, res, next)=>{
-    console.log("im pdf3")
     try {
-    console.log("im pdf4")
     const mediaArray = await readMedia()
     const media = mediaArray[req.index]
-    res.setHeader("Content-Disposition", `attachment; filename=${media.title}.pdf`);
+    res.setHeader("Content-Disposition", `attachment; filename=${media.Title}.pdf`);
     const source = await getMediaPdf(media)
     const destination = res;
     pipeline(source, destination, (err) => {
