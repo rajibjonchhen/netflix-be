@@ -10,7 +10,7 @@ import { checkIfIdExists } from './validation.js'
 import { getMediaPdf } from "../file/pdfMaker.js";
 import { pipeline } from "stream";
 import axios from 'axios'
-
+import {sendEmail} from './email.js'
 const mediaRouter = express.Router()
 
 const { CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } = process.env;
@@ -72,6 +72,7 @@ mediaRouter.post('/', inputValidation, async(req,res,next)=>{
         const newMedia = {imdbId:uniqid(),...req.body, createdAt:new Date (),reviews:[]}
         mediaArray.push(newMedia)
         await writeMedia(mediaArray)
+        await sendEmail(newMedia)
     res.status(201).send(newMedia)
     } catch (error) {
         console.log()
